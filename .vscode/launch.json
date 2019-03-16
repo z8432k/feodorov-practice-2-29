@@ -8,9 +8,9 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/bin/unpack",
+      "program": "${workspaceFolder}/bin/trapezoid",
       "args": [
-        "6003",
+        // "6003",
         //"3",
         //"888"
       ],
