@@ -107,12 +107,12 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
   size_t vecSize = xVecSize;
 
   if (xVecSize != yVecSize) {
-    errorFlags = errorFlags | 1;
+    errorFlags |= 1;
     goto has_error;
   }
 
   if (vecSize < 2) {
-    errorFlags = errorFlags | 8;
+    errorFlags |= 8;
     goto has_error;
   }
 
@@ -129,8 +129,8 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
     for (i = 0; i < vecSize; i++) {
       double x = xVector[i];
 
-      errorFlags = errorFlags ^ ((x == from) << 1);
-      errorFlags = errorFlags ^ ((x == to) << 2);
+      errorFlags ^= ((x == from) << 1);
+      errorFlags ^= ((x == to) << 2);
 
       if (!(errorFlags & 6)) {
         goto from_to_is_ok;
@@ -147,13 +147,13 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
     size_t steps = vecSize - 1;
     double result = 0;
 
-    size_t i;
-
-    for (i = 0; i < steps; i++) {
+    while (steps) {
       double x0 = *xVector++;
       double y0 = *yVector++;
 
-      result += (*xVector++ - x0) * ((y0 + *yVector++) / 2.0);
+      result += ((*xVector++ - x0) * ((y0 + *yVector++) / 2.0));
+
+      steps--;
     }
 
     return result;
