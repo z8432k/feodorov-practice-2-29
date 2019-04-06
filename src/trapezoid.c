@@ -137,7 +137,6 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
       }
     }
 
-    *error = errorFlags;
     goto has_error;
   }
 
