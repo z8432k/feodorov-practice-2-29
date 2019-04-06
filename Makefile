@@ -1,7 +1,7 @@
 PROG = trapezoid
 
 CFLAGS = -Wall -Wextra -ggdb -ansi -O0
-LDLIBS = -lgfortran
+LDLIBS = -lgfortran -lncurses
 
 default: bin/$(PROG)
 
