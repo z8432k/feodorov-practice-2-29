@@ -147,14 +147,13 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
     size_t steps = vecSize - 1;
     double result = 0;
 
-    while (steps) {
-      double x0 = *xVector++;
-      double y0 = *yVector++;
+    do {
+      double x0 = *xVector;
+      double y0 = *yVector;
 
-      result += ((*xVector++ - x0) * ((y0 + *yVector++) / 2.0));
+      result += ((*++xVector - x0) * ((y0 + *++yVector) / 2.0));
 
-      steps--;
-    }
+    } while (--steps);
 
     return result;
   }
