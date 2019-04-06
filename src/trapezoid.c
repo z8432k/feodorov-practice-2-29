@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <ncurses.h>
+#include <errno.h>
+#include <stdbool.h>
+#include <string.h>
+#include <math.h>
 
 void fortran_function_(unsigned char *a1, short *a2, int *a3, long *a4);
 static void printAuthor();
@@ -60,57 +64,107 @@ void printHeading() {
   printw("Accurate for first degree polynomials.\n\n");
 }
 
-#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
-double integral(double data[10][2], double *interval);
 
-double integral(double data[10][2], double *interval) {
-  size_t xPos = 0;
-  size_t yPos = 1;
-  size_t dataSize = 10;
-  size_t steps = dataSize - 1;
-  double result = 0;
-
-  int i;
-  double x0;
-  double y0;
-  double x;
-  double y;
-  double *currentPoint;
-  double *nextPoint;
-  double currentResutl = 0;
-
-  for (i = 0; i < steps; i++) {
-    currentPoint = data[i];
-    x0 = currentPoint[xPos];
-    y0 = currentPoint[yPos];
-
-    i++;
-
-    nextPoint = data[i];
-    x = nextPoint[xPos];
-    y = nextPoint[yPos];
-
-    currentResutl = (x - x0) * ((y0 + y) / 2.0);
-    result += currentResutl;
-
-    currentPoint = nextPoint;
-  }
-
-  return result;
-}
-
+double integral(double xVector[], double yVector[], double from, double to, unsigned short *error);
 
 void demonstration() {
   printw("Demo:\n");
 
-  double data [10][2] = {
-    {3, 3.27},    {3.5, 3.53},  {4, 3.21},    {4.5, 2.34},  {5, 1.5},
-    {5.5, 1.27},  {6, 1.67},    {6.5, 2.18},  {7, 2.18},    {7.5, 1.53}
-  };
+  double xVector[11] = { 3,     3.5,  4,    4.5,  5,    5.5,  6,    6.5,  7,    7.5, 0 };
+  double yVector[10] = { 3.27,  3.53, 3.21, 2.34, 1.5,  1.27, 1.67, 2.18, 2.18, 1.53 };
 
-  double interval [2] = {3.5, 7};
+  double from = 3.5;
+  double to   = 7;
 
-  integral(data, interval);
+  unsigned short error;
+  double result = integral(xVector, yVector, from, to, &error);
 
-  printw("Item: %f\n", data[0][0]);
+  if (result < 0) {
+    printw("ERROR OCCURED: %s\n", strerror(errno));
+  }
+  else {
+    printw("Demo result: %f\n", result);
+  }
+}
+
+#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
+
+double integral(double xVector[], double yVector[], double from, double to, unsigned short *error) {
+  /**
+   * Error flags
+   * 01 [BITS: 00000001] - xVector size != yVector size
+   * 02 [BITS: 00000010] - from not in xVector
+   * 04 [BITS: 00000100] - to not in xVector
+   * 08 [BITS: 00001000] - vectors too short
+   *
+   * 04 [BITS: 00001000] - Xn - Xn+1 = const
+   * 05 [BITS: 00010000] - from in array
+   */
+  unsigned short errorFlags = 0;
+
+  size_t xVecSize = 10; /* error */
+  size_t yVecSize = 10; /* error */
+  size_t vecSize = xVecSize;
+
+  if (xVecSize != yVecSize) {
+    errorFlags = errorFlags | 1;
+    goto has_error;
+  }
+
+  if (vecSize < 2) {
+    errorFlags = errorFlags | 8;
+    goto has_error;
+  }
+
+  {
+    /*
+      Predefine errors
+      from not in xVector
+      to not in xVector
+    */
+    errorFlags = errorFlags | 6;
+
+    size_t i;
+    /* double interval = 0; */
+    for (i = 0; i < vecSize; i++) {
+      double x = xVector[i];
+
+      errorFlags = errorFlags ^ ((x == from) << 1);
+      errorFlags = errorFlags ^ ((x == to) << 2);
+
+      if (!(errorFlags & 6)) {
+        goto from_to_is_ok;
+      }
+    }
+
+    *error = errorFlags;
+    goto has_error;
+  }
+
+  from_to_is_ok:
+
+  /* Calculation: */
+  {
+    size_t steps = vecSize - 1;
+    double result = 0;
+
+    size_t i;
+
+    for (i = 0; i < steps; i++) {
+      double x0 = *xVector++;
+      double y0 = *yVector++;
+
+      result += (*xVector++ - x0) * ((y0 + *yVector++) / 2.0);
+    }
+
+    return result;
+  }
+
+
+  has_error:
+
+  errno = EINVAL;
+  *error = errorFlags;
+
+  return -1;
 }
