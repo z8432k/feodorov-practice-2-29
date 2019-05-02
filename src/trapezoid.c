@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <glib.h>
 
 void fortran_function_(unsigned char *a1, short *a2, int *a3, long *a4);
 static void printAuthor();
@@ -65,19 +66,33 @@ void printHeading() {
 }
 
 
-double integral(double xVector[], double yVector[], double from, double to, unsigned short *error);
+double integral(GArray *xVector, GArray *yVector, double from, double to, unsigned short *error);
 
 void demonstration() {
+  #define DEMO_ARR_SIZE 10
+
+  double xVector[DEMO_ARR_SIZE] = { 3,     3.5,  4,    4.5,  5,    5.5,  6,    6.5,  7,    7.5 };
+  double yVector[DEMO_ARR_SIZE] = { 3.27,  3.53, 3.21, 2.34, 1.5,  1.27, 1.67, 2.18, 2.18, 1.53, };
+
+  size_t doubleSize = sizeof(double);
+
+  GArray *xGVector = g_array_new(FALSE, FALSE, doubleSize);
+  GArray *yGVector = g_array_new(FALSE, FALSE, doubleSize);
+
+
   printw("Demo:\n");
 
-  double xVector[11] = { 3,     3.5,  4,    4.5,  5,    5.5,  6,    6.5,  7,    7.5, 0 };
-  double yVector[10] = { 3.27,  3.53, 3.21, 2.34, 1.5,  1.27, 1.67, 2.18, 2.18, 1.53 };
+  short i;
+  for (i = 0; i < DEMO_ARR_SIZE; i++) {
+    g_array_append_val(xGVector, xVector[i]);
+    g_array_append_val(yGVector, yVector[i]);
+  }
 
   double from = 3.5;
   double to   = 7;
 
   unsigned short error;
-  double result = integral(xVector, yVector, from, to, &error);
+  double result = integral(xGVector, yGVector, from, to, &error);
 
   if (result < 0) {
     printw("ERROR OCCURED: %s\n", strerror(errno));
@@ -87,9 +102,11 @@ void demonstration() {
   }
 }
 
-#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
+/*#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))*/
 
-double integral(double xVector[], double yVector[], double from, double to, unsigned short *error) {
+double integral(GArray *xVector, GArray *yVector, double from, double to, unsigned short *error) {
+  #define MIN_VECTOR_SIZE 2
+
   /**
    * Error flags
    * 01 [BITS: 00000001] - xVector size != yVector size
@@ -98,20 +115,16 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
    * 08 [BITS: 00001000] - vectors too short
    *
    * 04 [BITS: 00001000] - Xn - Xn+1 = const
-   * 05 [BITS: 00010000] - from in array
    */
   unsigned short errorFlags = 0;
 
-  size_t xVecSize = 10; /* error */
-  size_t yVecSize = 10; /* error */
-  size_t vecSize = xVecSize;
-
-  if (xVecSize != yVecSize) {
+  if (xVector->len != yVector->len) {
     errorFlags |= 1;
-    goto has_error;
   }
 
-  if (vecSize < 2) {
+  guint vecSize = xVector->len;
+
+  if (vecSize < MIN_VECTOR_SIZE) {
     errorFlags |= 8;
     goto has_error;
   }
@@ -124,10 +137,10 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
     */
     errorFlags = errorFlags | 6;
 
-    size_t i;
+    guint i;
     /* double interval = 0; */
     for (i = 0; i < vecSize; i++) {
-      double x = xVector[i];
+      double x = g_array_index(xVector, double, i);
 
       errorFlags ^= ((x == from) << 1);
       errorFlags ^= ((x == to) << 2);
@@ -144,16 +157,23 @@ double integral(double xVector[], double yVector[], double from, double to, unsi
 
   /* Calculation: */
   {
-    size_t steps = vecSize - 1;
+    guint index = 0;
+    guint indexes = vecSize - 1;
     double result = 0;
 
-    do {
-      double x0 = *xVector;
-      double y0 = *yVector;
+    while (index < indexes) {
+      guint nextIndex = index + 1;
 
-      result += ((*++xVector - x0) * ((y0 + *++yVector) / 2.0));
+      double x0 = g_array_index(xVector, double, index);
+      double y0 = g_array_index(yVector, double, index);
 
-    } while (--steps);
+      double x1 = g_array_index(xVector, double, nextIndex);
+      double y1 = g_array_index(yVector, double, nextIndex);
+
+      result += ((x1 - x0) * ((y0 + y1) / 2.0));
+
+      index++;
+    }
 
     return result;
   }

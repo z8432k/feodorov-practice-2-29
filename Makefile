@@ -1,7 +1,7 @@
 PROG = trapezoid
 
-CFLAGS = -Wall -Wextra -ggdb -ansi -O0
-LDLIBS = -lgfortran -lncurses
+CFLAGS = -Wall -Wextra -ggdb -ansi -O0 `pkg-config --cflags glib-2.0`
+LDLIBS = -lgfortran -lncurses `pkg-config --libs glib-2.0`
 
 default: bin/$(PROG)
 
