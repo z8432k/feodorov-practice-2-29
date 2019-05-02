@@ -5,11 +5,18 @@
 #include <string.h>
 #include <math.h>
 #include <glib.h>
+#include <string.h>
+#include <stdlib.h>
+
+typedef unsigned short integralError;
 
 void fortran_function_(unsigned char *a1, short *a2, int *a3, long *a4);
 static void printAuthor();
 static void printHeading();
 static void demonstration();
+static GArray * integral_strerror(integralError error);
+static void integral_error_free(GArray* errors);
+
 
 int main(void) {
   initscr();
@@ -72,13 +79,14 @@ void demonstration() {
   #define DEMO_ARR_SIZE 10
 
   double xVector[DEMO_ARR_SIZE] = { 3,     3.5,  4,    4.5,  5,    5.5,  6,    6.5,  7,    7.5 };
-  double yVector[DEMO_ARR_SIZE] = { 3.27,  3.53, 3.21, 2.34, 1.5,  1.27, 1.67, 2.18, 2.18, 1.53, };
+  double yVector[DEMO_ARR_SIZE] = { 3.27,  3.53, 3.21, 2.34, 1.5,  1.27, 1.67, 2.18, 2.18, 1.53 };
+  double from = 3.5;
+  double to   = 7;
 
   size_t doubleSize = sizeof(double);
 
   GArray *xGVector = g_array_new(FALSE, FALSE, doubleSize);
   GArray *yGVector = g_array_new(FALSE, FALSE, doubleSize);
-
 
   printw("Demo:\n");
 
@@ -88,11 +96,10 @@ void demonstration() {
     g_array_append_val(yGVector, yVector[i]);
   }
 
-  double from = 3.5;
-  double to   = 7;
-
-  unsigned short error;
+  integralError error;
   double result = integral(xGVector, yGVector, from, to, &error);
+
+  GArray *errorStrings = integral_strerror(error);
 
   if (result < 0) {
     printw("ERROR OCCURED: %s\n", strerror(errno));
@@ -100,11 +107,58 @@ void demonstration() {
   else {
     printw("Demo result: %f\n", result);
   }
+
+  integral_error_free(errorStrings);
 }
 
 /*#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))*/
 
-double integral(GArray *xVector, GArray *yVector, double from, double to, unsigned short *error) {
+void integral_error_free(GArray* errors) {
+  int i;
+  for (i = 0; i < errors->len; i++) {
+    free(g_array_index(errors, char *, i));
+  }
+}
+
+GArray * integral_strerror(integralError error) {
+  #define INTEGRAL_ERROR_MASK_SIZE 4
+
+  GArray *errorStrings = g_array_new(FALSE, FALSE, sizeof(char *));
+  integralError mask = 1;
+
+  short i;
+  char *str;
+  for (i = 0; i < INTEGRAL_ERROR_MASK_SIZE; i++) {
+    if (error & mask) {
+      switch (mask) {
+        case 1:
+          str = "xVector size != yVector size";
+          break;
+        case 2:
+          str = "from not in xVecto";
+          break;
+        case 4:
+          str = "to not in xVector";
+          break;
+        case 8:
+          str = "vectors too short";
+          break;
+      }
+
+      size_t strSize = strlen(str);
+      char * buff = (char *) malloc(strSize);
+      strncpy(buff, str, strSize);
+
+      g_array_append_val(errorStrings, buff);
+    }
+
+    mask <<= 1;
+  }
+
+  return errorStrings;
+}
+
+double integral(GArray *xVector, GArray *yVector, double from, double to, integralError *error) {
   #define MIN_VECTOR_SIZE 2
 
   /**
@@ -116,10 +170,11 @@ double integral(GArray *xVector, GArray *yVector, double from, double to, unsign
    *
    * 04 [BITS: 00001000] - Xn - Xn+1 = const
    */
-  unsigned short errorFlags = 0;
+  integralError errorFlags = 0;
 
   if (xVector->len != yVector->len) {
     errorFlags |= 1;
+    goto has_error;
   }
 
   guint vecSize = xVector->len;
