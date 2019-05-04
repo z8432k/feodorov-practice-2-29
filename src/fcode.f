@@ -1,9 +1,19 @@
-      subroutine fortran_function(f1, f2, f3, f4)
-        integer*1 f1
-        integer*2 f2
-        integer*4 f3
-        integer*4 f4
+      SUBROUTINE INTEGRAL_TRAPEZOID(IVSIZ, XVEC, YVEC, FROM, TO, RESULT)
+        IMPLICIT INTEGER*4 (I-N), DOUBLE PRECISION (A-H, O-Z)
+        DIMENSION XVEC(IVSIZ), YVEC(IVSIZ)
 
-        write (*,100)f1,f2,f3,f4
-  100   format(4i5)
-      end subroutine fortran_function
+        RESULT = 0
+        DO 20 I=1, IVSIZ-1
+          X0 = XVEC(I)
+          X1 = XVEC(I + 1)
+
+          IF (X0.LT.FROM .OR. X1.GT.TO) GOTO 20
+
+          Y0 = YVEC(I)
+          Y1 = YVEC(I + 1)
+
+          RESULT = RESULT + ((X1 - X0) * ((Y0 + Y1) / 2.0))
+   20   CONTINUE
+
+C       PRINT *, RESULT
+      END SUBROUTINE INTEGRAL_TRAPEZOID

@@ -10,12 +10,18 @@
 
 typedef unsigned short integralError;
 
-void fortran_function_(unsigned char *a1, short *a2, int *a3, long *a4);
 static void printAuthor();
 static void printHeading();
 static void demonstration();
+
 static GArray * integral_strerror(integralError error);
 static void integral_error_free(GArray* errors);
+
+static short call_fortran_function(const GArray *xVector, const GArray *yVector, const double from, const double to, double *result);
+void integral_trapezoid_(const int *vecSize, const double xVector[], const double yVector[], const double *from, const double *to, double *result);
+
+static double integral(const GArray *xVector, const GArray *yVector, const double from, const double to, unsigned short *error);
+
 
 
 int main(void) {
@@ -71,9 +77,6 @@ void printHeading() {
   printw("Trapezoidal integration rule.\n");
   printw("Accurate for first degree polynomials.\n\n");
 }
-
-
-double integral(const GArray *xVector, const GArray *yVector, const double from, const double to, unsigned short *error);
 
 void demonstration() {
   #define DEMO_ARR_SIZE 10
@@ -214,17 +217,21 @@ double integral(const GArray *xVector, const GArray *yVector, const double from,
       errorFlags ^= ((x == to) << 2);
 
       if (!(errorFlags & 6)) {
-        goto from_to_is_ok;
+        goto calculation;
       }
     }
 
     goto has_error;
   }
 
-  from_to_is_ok:
 
   /* Calculation: */
+  calculation:
   {
+    double result = 0;
+    short callResult = call_fortran_function(xVector, yVector, from, to, &result);
+
+    /*
     guint index = 0;
     guint indexes = vecSize - 1;
     double result = 0;
@@ -246,6 +253,7 @@ double integral(const GArray *xVector, const GArray *yVector, const double from,
 
       result += ((x1 - x0) * ((y0 + y1) / 2.0));
     }
+    */
 
     return result;
   }
@@ -257,4 +265,25 @@ double integral(const GArray *xVector, const GArray *yVector, const double from,
   *error = errorFlags;
 
   return -1;
+}
+
+short call_fortran_function(const GArray *xVector, const GArray *yVector, const double from, const double to, double *result) {
+  int vectorSize = (int) xVector->len;
+  size_t doubleSize =  sizeof(double);
+
+  double *f_xVector = (double *) calloc(doubleSize, xVector->len);
+  double *f_yVector = (double *) calloc(doubleSize, yVector->len);
+
+  int i;
+  for (i = 0; i < vectorSize; i++) {
+    f_xVector[i] = g_array_index(xVector, double, i);
+    f_yVector[i] = g_array_index(yVector, double, i);
+  }
+
+  integral_trapezoid_(&vectorSize, f_xVector, f_yVector, &from, &to, result);
+
+  free(f_xVector);
+  free(f_yVector);
+
+  return 0;
 }
