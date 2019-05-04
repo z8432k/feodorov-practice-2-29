@@ -73,7 +73,7 @@ void printHeading() {
 }
 
 
-double integral(GArray *xVector, GArray *yVector, double from, double to, unsigned short *error);
+double integral(const GArray *xVector, const GArray *yVector, const double from, const double to, unsigned short *error);
 
 void demonstration() {
   #define DEMO_ARR_SIZE 10
@@ -103,6 +103,11 @@ void demonstration() {
 
   if (result < 0) {
     printw("ERROR OCCURED: %s\n", strerror(errno));
+
+    unsigned short i;
+    for (i = 0; i < errorStrings->len; i++) {
+      printw("\t- %s\n", g_array_index(errorStrings, char *, i));
+    }
   }
   else {
     printw("Demo result: %f\n", result);
@@ -114,14 +119,14 @@ void demonstration() {
 /*#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))*/
 
 void integral_error_free(GArray* errors) {
-  int i;
+  unsigned short i;
   for (i = 0; i < errors->len; i++) {
     free(g_array_index(errors, char *, i));
   }
 }
 
 GArray * integral_strerror(integralError error) {
-  #define INTEGRAL_ERROR_MASK_SIZE 4
+  #define INTEGRAL_ERROR_MASK_SIZE 5
 
   GArray *errorStrings = g_array_new(FALSE, FALSE, sizeof(char *));
   integralError mask = 1;
@@ -142,10 +147,12 @@ GArray * integral_strerror(integralError error) {
           break;
         case 8:
           str = "vectors too short";
+        case 16:
+          str = "from is >= to";
           break;
       }
 
-      size_t strSize = strlen(str);
+      size_t strSize = strlen(str) + 1;
       char * buff = (char *) malloc(strSize);
       strncpy(buff, str, strSize);
 
@@ -158,7 +165,7 @@ GArray * integral_strerror(integralError error) {
   return errorStrings;
 }
 
-double integral(GArray *xVector, GArray *yVector, double from, double to, integralError *error) {
+double integral(const GArray *xVector, const GArray *yVector, const double from, const double to, integralError *error) {
   #define MIN_VECTOR_SIZE 2
 
   /**
@@ -167,6 +174,7 @@ double integral(GArray *xVector, GArray *yVector, double from, double to, integr
    * 02 [BITS: 00000010] - from not in xVector
    * 04 [BITS: 00000100] - to not in xVector
    * 08 [BITS: 00001000] - vectors too short
+   * 16 [BITS: 00010000] - from is >= to
    *
    * 04 [BITS: 00001000] - Xn - Xn+1 = const
    */
@@ -181,6 +189,11 @@ double integral(GArray *xVector, GArray *yVector, double from, double to, integr
 
   if (vecSize < MIN_VECTOR_SIZE) {
     errorFlags |= 8;
+    goto has_error;
+  }
+
+  if (from >= to) {
+    errorFlags |= 16;
     goto has_error;
   }
 
@@ -225,9 +238,13 @@ double integral(GArray *xVector, GArray *yVector, double from, double to, integr
       double x1 = g_array_index(xVector, double, nextIndex);
       double y1 = g_array_index(yVector, double, nextIndex);
 
-      result += ((x1 - x0) * ((y0 + y1) / 2.0));
-
       index++;
+
+      if (x0 < from || x1 > to) {
+        continue;
+      }
+
+      result += ((x1 - x0) * ((y0 + y1) / 2.0));
     }
 
     return result;
