@@ -12,7 +12,7 @@ int main(void) {
   printHeading();
 
   menu:
-  printw("Main menu:\n");
+  printw("\nMain menu:\n");
   printw("\t1) Demonstration.\n");
   printw("\t2) Calculate.\n");
   printw("\t3) Author.\n");

@@ -33,7 +33,14 @@ void demonstration() {
     }
   }
   else {
-    printw("Demo result: %f\n", result);
+    printw("X\tY\n");
+
+    gushort i;
+    for (i = 0; i < DEMO_ARR_SIZE; i++) {
+      printw("%.2lf\t%.2lf\n", g_array_index(xGVector, double, i), g_array_index(yGVector, double, i));
+    }
+
+    printw("Demo result: %.2f\n", result);
   }
 
   integral_error_free(errorStrings);
