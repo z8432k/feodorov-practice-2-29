@@ -1,4 +1,5 @@
 #include "include/calculate.h"
+#include "include/plot.h"
 
 static void fillVector(GArray *vector, const guint limit);
 static Data_t inputData();
@@ -21,6 +22,7 @@ void calculate() {
   }
   else {
     printw("\n\nResult: %f\n\n", result);
+    plot(data.xGVector, data.yGVector, data.from, data.to);
   }
 
   integral_error_free(errorStrings);
