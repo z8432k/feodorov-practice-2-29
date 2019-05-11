@@ -1,4 +1,5 @@
 #include "include/demo.h"
+#include "include/plot.h"
 
 static const double xVector[DEMO_ARR_SIZE] = { 3,     3.5,  4,    4.5,  5,    5.5,  6,    6.5,  7,    7.5 };
 static const double yVector[DEMO_ARR_SIZE] = { 3.27,  3.53, 3.21, 2.34, 1.5,  1.27, 1.67, 2.18, 2.18, 1.53 };
@@ -41,6 +42,7 @@ void demonstration() {
     }
 
     printw("Demo result: %.2f\n", result);
+    plot(xGVector, yGVector, from, to);
   }
 
   integral_error_free(errorStrings);

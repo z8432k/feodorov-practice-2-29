@@ -33,7 +33,7 @@ void calculate() {
 static void fillVector(GArray *vector, const guint limit) {
   double value = 0;
 
-  while ((limit == 0 || vector->len < limit) && scanw("%lf", &value) > 0) {
+  while ((limit == 0 || vector->len < limit) && scanw("%lf", &value) != EOF) {
     g_array_append_val(vector, value);
   }
 }

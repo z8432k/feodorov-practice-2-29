@@ -5,7 +5,7 @@ LDLIBS = -lgfortran -lncurses `pkg-config --libs glib-2.0`
 
 default: bin/$(PROG)
 
-bin/$(PROG): bin/$(PROG).o bin/integral.o bin/demo.o bin/calculate.o bin/integral_trapezoid.o
+bin/$(PROG): bin/$(PROG).o bin/integral.o bin/demo.o bin/calculate.o bin/integral_trapezoid.o bin/plot.o
 	$(CC) $(CFLAGS) $^ $(LDLIBS) -o $@
 
 bin/integral.o: src/integral/integral.c
@@ -15,6 +15,9 @@ bin/demo.o: src/demo.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 bin/calculate.o: src/calculate.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+bin/plot.o: src/plot.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 bin/$(PROG).o: src/$(PROG).c
