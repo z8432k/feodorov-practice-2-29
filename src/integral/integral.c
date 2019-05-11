@@ -26,13 +26,14 @@ GArray * integral_strerror(integralError error) {
           str = err1;
           break;
         case 2:
-          str = "from not in xVecto";
+          str = "from not in xVector";
           break;
         case 4:
           str = "to not in xVector";
           break;
         case 8:
           str = "vectors too short";
+          break;
         case 16:
           str = "from is >= to";
           break;

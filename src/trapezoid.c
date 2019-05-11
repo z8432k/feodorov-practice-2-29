@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ncurses.h>
 #include "include/demo.h"
+#include "include/calculate.h"
 
 static void printAuthor();
 static void printHeading();
@@ -31,7 +32,7 @@ int main(void) {
       demonstration();
       break;
     case 2:
-      demonstration();
+      calculate();
       break;
     case 3:
       printHeading();

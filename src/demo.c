@@ -37,4 +37,6 @@ void demonstration() {
   }
 
   integral_error_free(errorStrings);
+  g_array_free(yGVector, TRUE);
+  g_array_free(xGVector, TRUE);
 }
