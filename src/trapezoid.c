@@ -12,6 +12,7 @@ int main(void) {
   printHeading();
 
   menu:
+  clear();
   printw("\nMain menu:\n");
   printw("\t1) Demonstration.\n");
   printw("\t2) Calculate.\n");
@@ -40,7 +41,11 @@ int main(void) {
       break;
     default:
       printw("Wrong menu item. Try again.\n");
+      goto menu;
   }
+
+  printw("Press any key for return in main menu.\n");
+  getch();
 
   goto menu;
 
