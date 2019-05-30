@@ -9,10 +9,9 @@ static void printHeading();
 int main(void) {
   initscr();
 
-  printHeading();
-
   menu:
   clear();
+  printHeading();
   printw("\nMain menu:\n");
   printw("\t1) Demonstration.\n");
   printw("\t2) Calculate.\n");
@@ -41,7 +40,6 @@ int main(void) {
       break;
     default:
       printw("Wrong menu item. Try again.\n");
-      goto menu;
   }
 
   printw("Press any key for return in main menu.\n");

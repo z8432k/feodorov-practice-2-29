@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 #include "include/plot.h"
 
-static const char *gnuplotFormat = "gnuplot -p -e 'set xlabel \"X\";set ylabel \"Y\";set grid x y;set style line 1 lt rgb \"red\" lw 2.5 pt 6;set style line 2 lt rgb \"blue\" lw 1.5 pt 6 dt 3;set arrow from %.2lf, graph 0 to %.2lf, graph 1 nohead ls 2;set arrow from %.2lf, graph 0 to %.2lf, graph 1 nohead ls 2;plot \"/dev/stdin\" using 1:2 with lines smooth csplines ls 1 t \"\"'";
+static const char *gnuplotFormat = "gnuplot -p -e 'set xlabel \"X\";set ylabel \"Y\";set grid x y;set style line 1 lt rgb \"red\" lw 2.5 pt 6;set style line 2 lt rgb \"blue\" lw 1.5 pt 6 dt 3;set arrow from %.2lf, graph 0 to %.2lf, graph 1 nohead ls 2;set arrow from %.2lf, graph 0 to %.2lf, graph 1 nohead ls 2;plot \"/dev/stdin\" using 1:2 with lines ls 1 t \"\"'";
 
 void plot(GArray *xGVector, GArray *yGVector, double from, double to) {
   char *gnuplotCommand;
