@@ -5,6 +5,8 @@ compiler:
 addons:
   apt:
     packages:
+      - gfortran
+      - gfortran-5
       - libglib2.0-dev
       - gnuplot
 install: make
