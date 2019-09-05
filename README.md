@@ -1,4 +1,5 @@
 # Учебная практика. Второй семестр
+[![Build Status](https://travis-ci.org/z8432k/feodorov-practice-2-29.svg?branch=master)](https://travis-ci.org/z8432k/feodorov-practice-2-29)
 
 ## Вычисление определенного интеграла таблично заданной функции методом трапеций
 
