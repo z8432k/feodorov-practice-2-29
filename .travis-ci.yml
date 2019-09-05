@@ -1,0 +1,9 @@
+compiler:
+  - clang
+  - gcc
+addons:
+  apt:
+    packages:
+      - libglib2.0-dev
+      - gnuplot
+install: make
