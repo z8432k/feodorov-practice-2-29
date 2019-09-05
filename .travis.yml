@@ -9,4 +9,4 @@ addons:
       - gfortran-5
       - libglib2.0-dev
       - gnuplot
-install: make
+script: make
